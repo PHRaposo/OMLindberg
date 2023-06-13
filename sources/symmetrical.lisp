@@ -200,6 +200,8 @@
        (transp-chords (axis-transposition filtered-chords model-chord)))
 (min-dist-chord transp-chords model-chord)))
 
+;;; UPDATE - SEARCH-STTCH and SEARCH-STTCH-ALT - methods for string and symbol (06/13/2023)
+
 (om::defmethod! search-sttch ((forte-name string) (model-chord list))
         :initvals '("6-2" (4800 5200 5500 5700 5900 6200 6400 6600 6700 7100 7200 7600))
 	:indoc '("pc-set" "list or list-of-lists of midicents")
@@ -224,6 +226,32 @@
        (s-ttch-alt forte-name input)) model-chord)
  (if (listp model-chord)
       (s-ttch-alt forte-name model-chord)
+ (error "The input argument should be a list or a list of lists of midicents."))))
+
+(om::defmethod! search-sttch ((forte-name symbol) (model-chord list))
+        :initvals '("6-2" (4800 5200 5500 5700 5900 6200 6400 6600 6700 7100 7200 7600))
+	:indoc '("pc-set" "list or list-of-lists of midicents")
+        :menuins '( (0 (("6-2" 'om::|6-2|) ("6-5" 'om::|6-5|) ("6-9" 'om::|6-9|) ("6-15" 'om::|6-15|) ("6-16" 'om::|6-16|) ("6-18" 'om::|6-18|) ("6-21" 'om::|6-21|) ("6-22" 'om::|6-22|) ("6-27" 'om::|6-27|) ("6-30" 'om::|6-30|) ("6-31" 'om::|6-31|) ("6-33" 'om::|6-33|) ("6-34" 'om::|6-34|))))
+	:icon 01
+	:doc "Returns the closest symmetrical twelve-tone chord from <model-chord>. The optional argument selects a chord 'list' or a list of chords 'lists'."
+(if (list-of-listp model-chord)
+     (mapcar #'(lambda (input)
+       (s-ttch (symbol-name forte-name) input)) model-chord)
+ (if (listp model-chord)
+      (s-ttch (symbol-name forte-name) model-chord)
+ (error "The input argument should be a list or a list of lists of midicents."))))
+
+(om::defmethod! search-sttch-alt ((forte-name symbol) (model-chord list))
+        :initvals '("6-1" (4800 5200 5500 5700 5900 6200 6400 6600 6700 7100 7200 7600) "list")
+	:indoc '("pc-set" "list or list of lists of midicents")
+        :menuins '( (0 (("6-1" 'om::|6-1|) ("6-7" 'om::|6-7|) ("6-8" 'om::|6-8|) ("6-20" 'om::|6-20|) ("6-32" 'om::|6-32|) ("6-35" 'om::|6-35|))))  
+	:icon 01
+	:doc "Returns the closest symmetrical twelve-tone chord from <model-chord>."
+(if (list-of-listp model-chord)
+     (mapcar #'(lambda (input)
+       (s-ttch-alt (symbol-name forte-name) input)) model-chord)
+ (if (listp model-chord)
+      (s-ttch-alt (symbol-name forte-name) model-chord)
  (error "The input argument should be a list or a list of lists of midicents."))))
 
 (defun get-pc-set (chord)
