@@ -90,7 +90,7 @@
 		 
  (setf f-max (first chord))
  
- (let* ((approximation (* (/ 1 approx) 2))
+ (let* ((approximation (/ 2 approx))
  
 	    (solution (virt-fund (om::mc->f chord) (om::mc->f f-min) (om::mc->f f-max) approximation)))	
 				
