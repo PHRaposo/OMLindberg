@@ -47,21 +47,30 @@
 
 (defun make-n-integersv (nbVar);adapted from OM-Math-Tools
   (loop for k from 1 to nbVar
-        collect (s::an-integerv)))
+        collect (screamer::an-integerv)))
+
+;;; middle-fund should be connected to the second output of ml-virtual-fundamental. 
+;;; The result is exactly the same as the G. Assayag tolerant-gcd function used in Esquisse and OMTristan libraries.
+ 
+(defun middle-fund (results) 
+ (+ (/ (- (third results) (second results)) 
+      2) 
+   (second results)))
 
 ; =================================================================;
 
-(in-package :s)
+(in-package :screamer)
 
 (defun approxv (n)
  (funcallv #'expt 2 (*v 1/12 n)))
-  
+
 (defun virt-fund (nf-list f-min f-max approx) ;04/21/2023
 
-  (setf appr (approxv approx))
+  ;(setf appr (approxv approx))
 
      (let* ((fund (a-real-betweenv f-min f-max))
-              (VarArray (oml::make-n-integersv (length nf-list))))
+            (VarArray (oml::make-n-integersv (length nf-list)))
+			(appr (approxv approx)))
 
               (local (dotimes (x (length nf-list))
                         (assert!  (andv (>=v (nth x VarArray) (/v (/v (nth x nf-list) appr) fund) )
@@ -73,10 +82,40 @@
      (solution 
       VarArray 
      (reorder #'domain-size
-          #'(lambda (x) (declare (ignore x)))
+          #'(lambda (x)(< x 1e-6)) 
           #'>
-          #'linear-force)))))
-
+          #'divide-and-conquer-force)))))
+		  
+		  
+;(best-value
+;  (solution 
+;   VarArray
+;  (reorder #'domain-size
+;       #'(lambda (x)(< x 1e-6)) 
+;       #'>
+;       #'divide-and-conquer-force)) (+v fund))))
+   
+;(reorder #'range-size
+ ;         #'(lambda (x) (declare (< x 1e-6))) ;(lambda (x) (declare (ignore x)))
+  ;        #'>
+   ;       #'linear-force)))))
+   
+(defun well-tempered-virt-fun (chord min-midi max-midi &optional n-common-notes)
+ (let ((common-tones (if n-common-notes n-common-notes (length chord)))
+       (tempered-chord (om::approx-m chord 2)))
+  (all-values 
+   (let ((fund (a-member-of (reverse (om::arithm-ser min-midi max-midi 100))))
+          intersect)
+   (local
+    (setf intersect
+	      (remove-duplicates
+	       (intersection (om::approx-m (om::f->mc (om::om* (om::mc->f fund) (om::arithm-ser 1 50 1))) 2)
+   					     tempered-chord)))
+    (if (>= (length intersect) common-tones)
+	    (cons fund (reverse intersect))
+		(fail)))))))
+  
+  	  
 (om::defmethod! ml-virtual-fundamental ((chord list) (approx number) &optional (f-min 100) (f-max 10800))
     :initvals '((6000 6200 6700 7100 7300 7700 8000 8200) 4)
 	:indoc '("list-of-midics" "2=semitone,4=quarter-tone,etc." "midics" "midics" ) 
@@ -106,3 +145,4 @@
                   (om::x-append (third results) (om::om* (first results) (third results)))))
           'equal 1)
           (write results)))))
+
