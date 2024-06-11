@@ -7,7 +7,12 @@
 
 (in-package :om)
 
-(mapc 'compile&load (list
+;--------------------------------------------------
+;Variable definiton with files to load 
+;--------------------------------------------------
+
+(defvar *omlindberg-files* nil)
+(setf *omlindberg-files* (list
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "package" :type "lisp") 
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "utils" :type "lisp")
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "interpolation" :type "lisp")
@@ -15,11 +20,19 @@
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "reconstruction" :type "lisp")
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "symmetrical" :type "lisp")
 						 (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "chord-progressions" :type "lisp")
-                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "harmonic-series" :type "lisp") 
-                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "virtual-fundamental-screamer" :type "lisp") 							 						                                                
-                  
-					)
-)
+                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "virtual-fundamental-screamer" :type "lisp")
+                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "harmonic-series" :type "lisp") 						  							 						                                                
+                         ))
+						 
+						 
+;--------------------------------------------------
+;Loading files 
+;--------------------------------------------------
+(mapc #'compile&load  *omlindberg-files*)
+
+;--------------------------------------------------
+;Fill library 
+;--------------------------------------------------
 
 (fill-library '(
 
@@ -65,7 +78,7 @@
     ) Nil)	
 
     ("HARMONIC-SERIES" Nil Nil (omlindberg::harmonic-series
-								s::ML-virtual-fundamental 
+								screamer::ML-virtual-fundamental 
                                 omlindberg::harmonic-ttch
                                 omlindberg::WTVF
     ) Nil)
