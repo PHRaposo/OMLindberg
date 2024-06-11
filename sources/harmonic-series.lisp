@@ -82,7 +82,7 @@ approx))
 				       (loop for r in res
 						     collect (remove-duplicates(om::approx-m (om::f->mc (om::om* (om::mc->f (car r)) (om::arithm-ser 1 40 1))) 2)))
 	  				   (loop for r in res
-	  						 collect (intersection (harmonic-ttch (car r)) chord))
+	  						 collect (reverse (intersection (harmonic-ttch (car r)) chord)))
 	  	  			   (loop for r in res
 	  	  					 collect (harmonic-ttch (car r))))								  	 							 
 		        (values (car res)
