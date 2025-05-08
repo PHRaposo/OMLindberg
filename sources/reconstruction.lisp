@@ -314,21 +314,21 @@ ref: ~A" chord oct pth pth-asc ord pth-cnt pth-uni pr normal fl1 fl2 first ref))
 ;;;;; RECONSTRUCTION WITH TWELVE-TONE CHORDS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(om::defmethod! get-new-twelve-tone ((midics list) (set-class om::t))
+(om::defmethod! get-new-twelve-tone ((midics list) (set-class om::t)) ;08/05/2025
  :initvals '( (3700 3900 4100 4200 4400 4900) om::6-2)
 	:indoc '("list or list of lists of midicents'" "pc-set or set-class[fn]") 
 	:icon 01      
 	:doc "Reconstructs a given chord (or chords) by imposing the choosen set-class and its complement to generate a twelve-tone chord."
 (cond ((and (list-of-listp midics) (symbolp set-class))
-           (mapcar #'(lambda (input1) (gt-new-tt input1 (pc set-class))) midics))
+           (mapcar #'(lambda (input1) (gt-new-tt input1 set-class)) midics))
 
           ((and (list-of-listp midics) (listp set-class))
-           (mapcar #'(lambda (input1 input2) (gt-new-tt input1 (pc input2))) midics set-class))
+           (mapcar #'(lambda (input1 input2) (gt-new-tt input1 input2)) midics set-class))
 
           ((and (listp midics) (listp set-class))
-           (mapcar #'(lambda (input1) (gt-new-tt midics (pc input1))) set-class))
+           (mapcar #'(lambda (input1) (gt-new-tt midics input1)) set-class))
 
-   (t (gt-new-tt midics (pc set-class)))))
+   (t (gt-new-tt midics set-class))))
 
 (defun best-rotation-transposition (normal1 normal2 sc comp)
 (loop for j from 0 to 11
@@ -361,7 +361,7 @@ when y return y))
           (when (not (intersection pcs transp)) 
           (return (reverse transp))))))
 
-(defun gt-new-tt (chord set-class)
+(defun gt-new-tt-internal (chord set-class) ;08/05/2025
  (let* ((first-hex (om::first-n chord 6))
           (second-hex (om::last-n chord 6))
           (par1 (par first-hex))
@@ -377,7 +377,17 @@ when y return y))
           (new-hex2 (om::posn-match (om::sort-list (second new-transp-rot)) (fifth par2))))
           (om::x-append (om::sort-list(approx-oct first-hex new-hex1))
                                   (om::sort-list (approx-oct second-hex new-hex2))))))		  
-          
+ 
+(defun gt-new-tt (chord set-class) ;08/05/2025
+ (let* ((string-sc (symbol-name set-class))
+        (b-form (gt-new-tt-internal chord (pc (intern (concatenate 'string string-sc "B") :om)))) 
+        (a-form (gt-new-tt-internal chord (pc (intern (concatenate 'string string-sc "A") :om))))
+        (b-a-distances (list (applysum (om::om-abs (om::om- chord b-form)))
+                             (applysum (om::om-abs (om::om- chord a-form))))))
+ (nth (position (om::list-min b-a-distances)
+                 b-a-distances) 
+      (list b-form a-form))))
+ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod! par-pc ((pcs list))
