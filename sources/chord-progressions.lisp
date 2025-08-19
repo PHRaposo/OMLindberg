@@ -1,34 +1,29 @@
 (in-package :omlindberg)
 
 (defun common-notes-progressions (chords accumul)
-	(let* ((first-pcs (mc->pc (first chords)))
-	       (second-pcs (mc->pc (second chords)))
-		   (common-pcs (om::x-intersect first-pcs second-pcs)) 
-		   (first-diff (om::x-diff first-pcs common-pcs)) 
-		   (second-diff (om::x-diff second-pcs common-pcs)) 
-		   (diff-notes (om::posn-match (second chords)
-		                                      (om::flat (mapcar #'(lambda (input)
-											              (tristan-positions second-pcs input))
-														 common-pcs))))
-		  (first-without-diff (om::posn-match (first chords)
-		                                      (om::flat (mapcar #'(lambda (input)
-											              (tristan-positions first-pcs input))
-														 first-diff))))
-   		  (second-without-diff (om::posn-match (second chords)
-   		                                      (om::flat (mapcar #'(lambda (input)
-   											              (tristan-positions second-pcs input))
-   														 second-diff))))
-		 (results
-	         (om::x-append accumul
-			            (list (first chords))
-		                    (list second-without-diff)					   	             
-                                    (list (second chords)) 
-			            (list first-without-diff)))) 
-
-								
-	(if (= 2 (length chords))														 
-		      (write (remove nil results))
-	     (common-notes-progressions (cdr chords) results))))
+  (let* ((first-chord (first chords))
+         (second-chord (second chords))
+         (first-pcs (mc->pc first-chord))
+         (second-pcs (mc->pc second-chord))
+         ;; Notes from chord 2 with pcs not in chord 1
+         (new-pcs-from-2 (remove-if-not
+                          (lambda (note)
+                            (not (member (mc->pc note) first-pcs)))
+                          second-chord))
+         ;; Notes from chord 1 with pcs not in chord 2
+         (new-pcs-from-1 (remove-if-not
+                          (lambda (note)
+                            (not (member (mc->pc note) second-pcs)))
+                          first-chord))
+         (results
+          (om::x-append accumul
+                        (list first-chord)
+                        (list new-pcs-from-2)
+                        (list second-chord)
+                        (list new-pcs-from-1))))
+    (if (= 2 (length chords))
+        (write (remove nil results))
+        (common-notes-progressions (cdr chords) results))))
 		  
 (om::defmethod! superimpose ((chords list))
  :initvals '( ((6000 6600 7300 7600) (6400 7000 7700 8000) 
@@ -37,11 +32,12 @@
 			   (6200 6800 7500 7800) (6300 6900 7600 7900)))
 	:indoc '("list-of-midicents") 
 	:icon 01
-	:doc "Returns a chord progression by common tones. Each pair of chords will produce 4 results: 
-	- first chord;
-	- sum of the two chords, where the octaves of the SECOND chord are ommited;
-	- a NEW chord (or single notes) with the difference between the two chords;
-	- sum of the two chords, where the octaves of the FIRST chord are ommited and REPLACED by the notes from the difference."
+	:doc "Returns a chord progression by comparing pitch classes between pairs of chords.
+For each pair of chords, produces four results:
+  - the first chord;
+  - the notes from the second chord whose pitch classes are not present in the first chord;
+  - the second chord;
+  - the notes from the first chord whose pitch classes are not present in the second chord."
  (common-notes-progressions chords nil))
 
 (om::defmethod! freeze ((chord list) (positions list) (chords list))
