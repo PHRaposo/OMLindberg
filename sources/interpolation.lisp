@@ -33,3 +33,40 @@
       1 1) 
      0 100)))))
 (t nil))))
+
+;; INTERPOLATION WITH FUNCTION f(x) = FUN 
+
+(defun interpol-fn (begin end samples fn count)
+(if (= count (1- samples))
+    (list end)
+ (cons (+ begin (* (apply fn (list (/ count (1- samples)))) (- end begin)))
+       (interpol-fn begin end samples fn (1+ count)))))
+
+(om::defmethod! interpolation-fun ((begin list) (end list) (samples integer) &optional (function function))
+  :initvals '((3600 4000 4500 5000) (7200 7600 7900 8400) 20 nil)
+  :icon 01
+  :indoc '("number or list" "number or list" "integer" "number")
+  :doc "Interpolates 2 numbers or lists (from <begin> to <end>) through <samples> steps.
+
+<function> is f(x)=x for linear (lambda patch) or any other function.
+" 
+(let ((fun (if function function (curve-fun 0.0))))
+  (om::mat-trans
+   (mapcar #'(lambda (n1 n2)
+               (interpol-fn n1 n2 samples fun 0))
+    begin end))))
+
+(om::defmethod! curve-fun ((curve float))
+  :initvals '(0.0)
+  :icon 01
+  :indoc '("float")
+  :doc "Generates a function with selected curve."
+(eval `(lambda (x) (expt x (exp ,curve)))))
+
+(om::defmethod! sinus-fun ()
+  :icon 01
+  :doc "Generates a sinusoidal function"
+(eval `(lambda (x)
+         (* 1/2 (+ 1 (sin (+ (/ (* 3 pi) 2) (* pi x))))))))
+		 
+
