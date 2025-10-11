@@ -21,7 +21,8 @@
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "symmetrical" :type "lisp")
 						 (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "chord-progressions" :type "lisp")
                          (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "virtual-fundamental-screamer" :type "lisp")
-                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "harmonic-series" :type "lisp") 						  							 						                                                
+                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "harmonic-series" :type "lisp")
+                         (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "grythm" :type "lisp")						  						  							 						                                                
                          ))
 						 
 						 
@@ -37,48 +38,50 @@
 (fill-library '(
 
     ("INTERPOLATION" Nil Nil (omlindberg::ML-interpolation
-
+			      omlindberg::interpolation-fun
+                              omlindberg::curve-fun
+			      omlindberg::sinus-fun
     ) Nil)
 
     ("SET-THEORY" Nil Nil (omlindberg::normal-order
-		                   omlindberg::prime
-						   omlindberg::prime1
-						   omlindberg::pc
-						   omlindberg::pc?
+		           omlindberg::prime
+			   omlindberg::prime1
+			   omlindberg::pc
+			   omlindberg::pc?
     ) Nil)
 
     ("RECONSTRUCTION-OF-A-CHORD" Nil Nil (omlindberg::par
-		                                  omlindberg::flatten
-										  omlindberg::approx-oct
-										  omlindberg::dist-classes										  
-										  omlindberg::get-new
+		                          omlindberg::flatten
+					  omlindberg::approx-oct
+					  omlindberg::dist-classes										  
+					  omlindberg::get-new
                                           omlindberg::chain-get-new
                                           omlindberg::get-new-twelve-tone										  
     ) Nil)
 
     ("SYMMETRICAL-CHORDS" Nil Nil (omlindberg::symmetrical-chord
-								   omlindberg::new-sttch 
+				   omlindberg::new-sttch 
                                    omlindberg::new-sttch-alt
-								   omlindberg::random-sttch
+				   omlindberg::random-sttch
                                    omlindberg::all-sttchords
                                    omlindberg::all-sttchords-alt
                                    omlindberg::search-sttch                                   
                                    omlindberg::search-sttch-alt
-                                   omlindberg::ml-hexachords
-								   
+                                   omlindberg::search-sttch-circular
+                                   omlindberg::ml-hexachords								   
     ) Nil)
 
     ("HARMONIC-REGION" Nil Nil (omlindberg::wide-scale
-		                        omlindberg::synthetic-scale
+		                omlindberg::synthetic-scale
     ) Nil)
 	
     ("CHORD-PROGRESSIONS" Nil Nil (omlindberg::superimpose
-		                           omlindberg::freeze
-								   omlindberg::auto-transp
+		                   omlindberg::freeze
+				   omlindberg::auto-transp
     ) Nil)	
 
     ("HARMONIC-SERIES" Nil Nil (omlindberg::harmonic-series
-								screamer::ML-virtual-fundamental 
+				screamer::ML-virtual-fundamental 
                                 omlindberg::harmonic-ttch
                                 omlindberg::WTVF
     ) Nil)
@@ -86,14 +89,17 @@
     ("UTILS" Nil Nil (omlindberg::chord-seq->bpf-lib
                       omlindberg::pc->mc
                       omlindberg::mc->pc
-					  omlindberg::mod12
-					  omlindberg::chord->intervals
-					  omlindberg::intervals->chord
-					  omlindberg::pc->chord
-                      omlindberg::first-last-6
-					  
+		      omlindberg::mod12
+		      omlindberg::chord->intervals
+		      omlindberg::intervals->chord
+		      omlindberg::pc->chord
+                      omlindberg::first-last-6					  
     ) Nil)  
-
+	
+	("GRYTHM"
+	 (("gesture" nil nil (omlindberg::gesture) nil)
+	  ("size" nil nil (omlindberg::gtempo omlindberg::gpercentage omlindberg::gsize omlindberg::g-lim) nil)					
+	 ) Nil Nil Nil)
 ))
 
 (print 

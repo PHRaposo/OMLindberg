@@ -200,8 +200,6 @@
        (transp-chords (axis-transposition filtered-chords model-chord)))
 (min-dist-chord transp-chords model-chord)))
 
-;;; UPDATE - SEARCH-STTCH and SEARCH-STTCH-ALT - methods for string and symbol (06/13/2023)
-
 (om::defmethod! search-sttch ((forte-name string) (model-chord list))
         :initvals '("6-2" (4800 5200 5500 5700 5900 6200 6400 6600 6700 7100 7200 7600))
 	:indoc '("pc-set" "list or list-of-lists of midicents")
@@ -253,6 +251,24 @@
  (if (listp model-chord)
       (s-ttch-alt (symbol-name forte-name) model-chord)
  (error "The input argument should be a list or a list of lists of midicents."))))
+
+(om::defmethod! search-sttch-circular ((forte-names list) (model-chords list))
+        :initvals '(nil nil)
+	:indoc '("list" "list") 
+	:icon 01
+	:doc "Returns the closest symmetrical twelve-tone chord from each chord in <model-chords>."
+(let ((circular-fns (om::iterate-list forte-names (length model-chords))))
+ (mapcar #'(lambda (fn model)
+            (let ((fn (if (stringp fn) fn (symbol-name fn))))
+             (cond ((member fn '("6-2" "6-5" "6-9" "6-15" "6-16" "6-18" "6-21" "6-22" "6-27" "6-30" "6-31" "6-33" "6-34")
+                            :test #'string-equal)
+                    (search-sttch fn model))
+                   ((member fn '("6-1" "6-7" "6-8" "6-20" "6-32" "6-35")
+                            :test #'string-equal)
+                    (search-sttch-alt fn model))
+                  (t (om::om-message-dialog "Cannot build a symmetrical chord with set-class ~A." fn)
+                     (om::om-abort)))))
+           circular-fns model-chords)))
 
 (defun get-pc-set (chord)
 (let* ((first-6 (om::first-n chord 6))
