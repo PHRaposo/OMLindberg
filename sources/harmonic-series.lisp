@@ -75,7 +75,11 @@ approx))
 	The second output returns the complete harmonic series, up to partial 40.
 	The third output returns the fundamental with common tones with odd partials (harmonic tweleve tone chord).
 	The fourth output returns the complete harmonic series with odd partials."
-	(let ((res (screamer::well-tempered-virt-fun chord mc-min mc-max n)))
+	(let ((res (let ((solution nil))
+                (loop for k from n downto 1           
+                       do (setf solution (screamer::well-tempered-virt-fun chord mc-min mc-max k))
+                       when solution
+                       return solution))))
 	 (cond ((not (null res))
 	        (if (equal selection :all)
 	            (values res
