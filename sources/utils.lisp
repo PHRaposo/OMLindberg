@@ -158,12 +158,19 @@
   (mapcar #'(lambda (input1)
           (om::simple-bpf-from-list nil input1)) y-points-list))))
 
-(om::defmethod! chord-seq->bpf-lib ((midics list))
+(om::defmethod! chord-seq->bpf-lib ((self list))
         :initvals '(nil)
 	:indoc '("list-of-lists of midicents") 
 	:icon 01
-	:doc "Constructs a BPF-LIB object from a list-of-lists of midicents. All chords must have the same number of notes."
-(om::make-instance 'om::bpf-lib :bpf-list (chord-seq-to-bpf-lib midics)))
+	:doc "Constructs a BPF-LIB object from a list-of-lists of midicents or chord-seq object. All chords must have the same number of notes."
+(om::make-instance 'om::bpf-lib :bpf-list (chord-seq-to-bpf-lib self)))
+
+(om::defmethod! chord-seq->bpf-lib ((self om::chord-seq))
+        :initvals '(nil)
+	:indoc '("list-of-lists of midicents") 
+	:icon 01
+	:doc "Constructs a BPF-LIB object from a list-of-lists of midicents or chord-seq object. All chords must have the same number of notes."
+(om::make-instance 'om::bpf-lib :bpf-list (chord-seq-to-bpf-lib (om::lmidic self))))
 
 (om::defmethod! mod12 ((num integer))
         :initvals '(-4)

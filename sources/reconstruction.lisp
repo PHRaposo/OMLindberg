@@ -234,8 +234,69 @@ ref: ~A" chord oct pth pth-asc ord pth-cnt pth-uni pr normal fl1 fl2 first ref))
            (new-pth-uni (om::posn-match new-normal ref))
            (new-pth-asc (om::flat (mapcar #'(lambda (input1 input2) (om::repeat-n input1 input2)) new-pth-uni pth-cnt)))
            (new-pth (om::posn-match new-pth-asc ord)))
+           
+  (approx-oct chord new-pth))) ;(mapcar #'(lambda (input1 input2) (fix-octaves-note input1 input2)) chord new-pth)))
 
-(mapcar #'(lambda (input1 input2) (fix-octaves-note input1 input2)) chord new-pth)))
+(om::defmethod! approx-oct ((midic number) (pc integer))
+ :initvals '( 3600 1);
+  :indoc '("midic'" "pc") 
+  :icon 01    
+  :doc "Approximation of octaves."
+ (approx-oct-lindberg midic pc))
+
+(om::defmethod* approx-oct ((midics list) (pcs list))
+ (approx-oct-lindberg midics pcs))
+ 
+(defun mod-equiv-from (v a modulus)
+  "Number equivalent to v (mod MODULUS) in the half-open interval [a, a+MODULUS)."
+  (+ v (* modulus (ceiling (- a v) modulus))))
+
+(defun approx-oct-lindberg (midics pcs)
+  "Lindberg-style octave approximation (as described by Marc Chemillier).
+   Accepts an atom (midic + pc) or lists (chord + pcs).
+   Returns the same type: atom -> atom, list -> list.
+   - First note: mod-equiv in [x-600, x+600)
+   - Subsequent notes (chord): equivalent interval in [i-600, i+600)"
+  (cond
+    ((and (numberp midics) (numberp pcs))
+     (mod-equiv-from (* 100 pcs) (- midics 600) 1200))
+    ((and (listp midics) (listp pcs))
+     (unless (= (length midics) (length pcs))
+       (error "approx-oct: midics and pcs have different sizes (~A vs ~A)"
+              (length midics) (length pcs)))
+     (when midics
+       (let* ((first-new (mod-equiv-from (* 100 (first pcs))
+                                         (- (first midics) 600)
+                                         1200))
+              (result (list first-new)))
+         (loop for (prev-o next-o) on midics while next-o
+               for prev-pc in pcs
+               for next-pc in (rest pcs)
+               do (let* ((i (- next-o prev-o))
+                         (j (* 100 (mod (- next-pc prev-pc) 12)))
+                         (j-fit (mod-equiv-from j (- i 600) 1200)))
+                    (push (+ (first result) j-fit) result)))
+         (nreverse result))))
+    (t (error "approx-oct: both arguments must be numbers OR lists (got ~A and ~A)"
+              midics pcs))))
+#|
+;;; OLD 
+(om::defmethod! approx-oct ((midic number) (pc integer))
+ :initvals '( 3600 1);
+  :indoc '("midic'" "pc") 
+  :icon 01    
+  :doc "Approximation of octaves."
+ (fix-octaves-note midic pc))
+
+(om::defmethod* approx-oct ((midics list) (pcs list))
+ (mapcar #'(lambda (input1 input2) (fix-octaves-note input1 input2)) midics pcs))
+
+(defun fix-octaves-note (input1 input2)
+  (let* ((distances (- input1 (* 100 input2))) 
+         (oct-rest  (multiple-value-bind (x y) (om// distances 1200) (list x y))))
+  (if (>= (second oct-rest) 600) 
+       (+ (* 100 input2) (* 1200 (+ 1 (first oct-rest) )))
+       (+ (* 100 input2) (* 1200 (first oct-rest))))))|#
 
 (om::defmethod! get-new ((midics list) (pcs om::t))
  :initvals '( (3700 3900 4100 4200 4400 4900) (0 2 3 5 7))
@@ -251,23 +312,6 @@ ref: ~A" chord oct pth pth-asc ord pth-cnt pth-uni pr normal fl1 fl2 first ref))
         (mapcar #'(lambda (input1)
          (gt-new-final input1 pcs)) midics)
         (gt-new-final midics pcs))))
-
-(om::defmethod! approx-oct ((midic number) (pc integer))
- :initvals '( 3600 1)
-	:indoc '("midic'" "pc") 
-	:icon 01    
-	:doc "Approximation of octaves."
- (fix-octaves-note midic pc))
-
-(om::defmethod* approx-oct ((midics list) (pcs list))
- (mapcar #'(lambda (input1 input2) (fix-octaves-note input1 input2)) midics pcs))
-
-(defun fix-octaves-note (input1 input2)
-  (let* ((distances (- input1 (* 100 input2))) 
-         (oct-rest  (multiple-value-bind (x y) (om// distances 1200) (list x y))))
-  (if (>= (second oct-rest) 600) 
-       (+ (* 100 input2) (* 1200 (+ 1 (first oct-rest) )))
-       (+ (* 100 input2) (* 1200 (first oct-rest)))))) 
 
 (om::defmethod! chain-get-new ((chords list) (set-class om::t) (mode symbol) (duplications symbol) &optional (twelve-tone :no))
  :initvals '( ((3800 4700 4900 5200 5800 6000) (3900 4800 5000 5300 5900 6100) (4100 5000 5200 5500 6100 6300) (4500 5300 5600 5900 6400 6700) (5000 5600 6000 6300 6700 7200) (5500 6000 6400 6700 7100 7700) (6000 6400 6900 7200 7500 8200) (6400 6600 7200 7500 7700 8600) (6600 6800 7400 7700 7900 8800) (6700 6900 7500 7800 8000 8900)) (om::6-2 om::6-Z10) :circular :flatten :no) ;Example by Marc Chemillier
@@ -323,7 +367,9 @@ ref: ~A" chord oct pth pth-asc ord pth-cnt pth-uni pr normal fl1 fl2 first ref))
            (mapcar #'(lambda (input1) (gt-new-tt input1 set-class)) midics))
 
           ((and (list-of-listp midics) (listp set-class))
-           (mapcar #'(lambda (input1 input2) (gt-new-tt input1 input2)) midics set-class))
+           (if (> (length midics) (length set-class))
+               (mapcar #'(lambda (input1 input2) (gt-new-tt input1 input2)) midics (om::iterate-list set-class (length midics)))
+               (mapcar #'(lambda (input1 input2) (gt-new-tt input1 input2)) midics set-class)))
 
           ((and (listp midics) (listp set-class))
            (mapcar #'(lambda (input1) (gt-new-tt midics input1)) set-class))
@@ -376,7 +422,7 @@ when y return y))
           (new-hex1 (om::posn-match (om::sort-list (first new-transp-rot)) (fifth par1)))
           (new-hex2 (om::posn-match (om::sort-list (second new-transp-rot)) (fifth par2))))
           (om::x-append (om::sort-list(approx-oct first-hex new-hex1))
-                                  (om::sort-list (approx-oct second-hex new-hex2))))))		  
+                                  (om::sort-list (approx-oct second-hex new-hex2))))))
  
 (defun gt-new-tt (chord set-class) ;08/05/2025
  (let* ((string-sc (symbol-name set-class))
