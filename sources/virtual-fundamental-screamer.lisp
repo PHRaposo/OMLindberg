@@ -120,7 +120,7 @@
         (solution (virt-fund (om::mc->f chord) (om::mc->f f-min) (om::mc->f f-max) approximation)))
   (values (om::remove-dup
            (mapcar #'(lambda (fund)
-                      (om::f->mc (om::om* (first solution) fund)))
+                      (om::f->mc (om::om* (cons 1 (first solution)) fund)))
             (second solution))
            'equal 1)
            (om::x-append (list (first solution))
