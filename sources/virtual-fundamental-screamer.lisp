@@ -123,6 +123,7 @@
                       (om::f->mc (om::om* (first solution) fund)))
             (second solution))
            'equal 1)
-           solution)))
+           (om::x-append (list (first solution))
+                         (remove-duplicates (second solution) :test #'eql)))))
 
 
