@@ -188,17 +188,46 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;(defun s-ttch (forte-name model-chord)
+;(let* ((combinatorial-chords (omlindberg::read-text-file forte-name))
+;       (filtered-chords (width-filter combinatorial-chords model-chord))
+;       (transp-chords (axis-transposition filtered-chords model-chord)))
+;(min-dist-chord transp-chords model-chord)))
+
+;(defun s-ttch-alt (forte-name model-chord)
+;(let* ((combinatorial-chords (omlindberg::read-text-file forte-name))
+;       (filtered-chords (width-filter combinatorial-chords model-chord))
+;       (transp-chords (axis-transposition filtered-chords model-chord)))
+;(min-dist-chord transp-chords model-chord)))
+
+;;; NEW: Accepts intervals of 1200 or wider.
+(defun s-ttch-internal (forte-name model-chord)
+(let* ((combinatorial-chords (omlindberg::read-text-file forte-name))
+       (filtered-chords (width-filter combinatorial-chords model-chord))
+       (transp-chords (axis-transposition filtered-chords model-chord)))
+(min-dist-chord transp-chords model-chord)))
+
 (defun s-ttch (forte-name model-chord)
+ (let* ((notes     (sort (copy-list model-chord) #'<))
+        (octaves   (om::om// (om::x->dx notes) 1200))
+        (offsets   (om::dx->x 0 (om::om* octaves 1200)))
+        (compacted (om::om- notes offsets))
+        (symmetrical (s-ttch-internal forte-name compacted)))
+  (om::om+ symmetrical offsets)))
+
+(defun s-ttch-alt-internal (forte-name model-chord)
 (let* ((combinatorial-chords (omlindberg::read-text-file forte-name))
        (filtered-chords (width-filter combinatorial-chords model-chord))
        (transp-chords (axis-transposition filtered-chords model-chord)))
 (min-dist-chord transp-chords model-chord)))
 
 (defun s-ttch-alt (forte-name model-chord)
-(let* ((combinatorial-chords (omlindberg::read-text-file forte-name))
-       (filtered-chords (width-filter combinatorial-chords model-chord))
-       (transp-chords (axis-transposition filtered-chords model-chord)))
-(min-dist-chord transp-chords model-chord)))
+ (let* ((notes     (sort (copy-list model-chord) #'<))
+        (octaves   (om::om// (om::x->dx notes) 1200))
+        (offsets   (om::dx->x 0 (om::om* octaves 1200)))
+        (compacted (om::om- notes offsets))
+        (symmetrical (s-ttch-alt-internal forte-name compacted)))
+  (om::om+ symmetrical offsets)))
 
 (om::defmethod! search-sttch ((forte-name string) (model-chord list))
         :initvals '("6-2" (4800 5200 5500 5700 5900 6200 6400 6600 6700 7100 7200 7600))
