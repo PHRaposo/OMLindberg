@@ -142,6 +142,9 @@
         (list-of-intervals  (om::om* 100 intervals)))
 (om::dx->x note-mc list-of-intervals)))
 
+(om::defmethod! intervals->chord ((lowest-note integer) (intervals list))
+ (om::dx->x lowest-note (om::om* 100 intervals)))
+
 (om::defmethod! chord->intervals ((chord list))
         :initvals '((4000 4700 5400 5800 6100 6500 6800 7200 7500 7900 8600 9300))
 	:indoc '("midicents") 
