@@ -124,6 +124,6 @@
             (second solution))
            'equal 1)
            (om::x-append (list (first solution))
-                         (remove-duplicates (second solution) :test #'eql)))))
+                         (remove-duplicates (om::om-round (second solution) 5) :test #'eql)))))
 
 
