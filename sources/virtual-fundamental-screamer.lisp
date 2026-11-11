@@ -121,9 +121,11 @@
   (values (om::remove-dup
            (mapcar #'(lambda (fund)
                       (om::f->mc (om::om* (cons 1 (first solution)) fund)))
-            (second solution))
+            (om::list! (second solution)))
            'equal 1)
            (om::x-append (list (first solution))
-                         (remove-duplicates (om::om-round (second solution) 5) :test #'eql)))))
+                         (if (numberp (second solution))
+                             (second solution)
+                             (remove-duplicates (om::om-round (second solution) 5) :test #'eql))))))
 
 
